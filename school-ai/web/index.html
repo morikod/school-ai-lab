@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Labyrint v1.0</title>
+    <style>
+        body {
+            background-color: #0c0c0c;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 95%;
+            max-width: 900px;
+            height: 85vh;
+            border: 2px solid #00ff41;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+
+        #output {
+            flex-grow: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            padding-right: 10px;
+        }
+
+        #output::-webkit-scrollbar { width: 8px; }
+        #output::-webkit-scrollbar-thumb { background: #00ff41; }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #00ff41;
+            padding-top: 15px;
+        }
+
+        input {
+            flex-grow: 1;
+            background: transparent;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 12px;
+            font-family: inherit;
+            outline: none;
+            font-size: 16px; /* Удобно для телефона */
+        }
+
+        button {
+            background: #00ff41;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        button:hover { background: #00cc33; }
+        button:disabled { background: #004411; cursor: not-allowed; }
+
+        .system-msg { color: #888; font-style: italic; margin: 10px 0; }
+        .error-msg { color: #ff3333; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="output">
+[ SYSTEM: AI GAME MASTER v1.0 ]
+Vítejte v AI Labyrintu. 
+Zadejte 3 slova (např. les, drak, meč) a začněte hru.
+--------------------------
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Napište slova или выбор..." autofocus autocomplete="off">
+        <button id="send-btn">HRÁT</button>
+    </div>
+</div>
+
+<script>
+    const output = document.getElementById('output');
+    const input = document.getElementById('user-input');
+    const btn = document.getElementById('send-btn');
+
+    // Эффект печатающей машинки
+    function typeText(element, text, speed = 15) {
+        return new Promise((resolve) => {
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    output.scrollTop = output.scrollHeight;
+                    setTimeout(type, speed);
+                } else {
+                    resolve();
+                }
+            }
+            type();
+        });
+    }
+
+    async function playGame() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        output.innerHTML += `\n> ${text}\n`;
+        input.value = '';
+        input.disabled = true;
+        btn.disabled = true;
+
+        const typingMsg = document.createElement('div');
+        typingMsg.className = 'system-msg';
+        typingMsg.innerText = '[ AI přemýšlí... ]';
+        output.appendChild(typingMsg);
+        output.scrollTop = output.scrollHeight;
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'game-master',
+                    prompt: text,
+                    stream: false
+                })
+            });
+
+            if (!response.ok) throw new Error('Chyba serveru');
+
+            const data = await response.json();
+            typingMsg.remove();
+            
+            const responseContainer = document.createElement('span');
+            output.appendChild(responseContainer);
+            
+            // Печатаем ответ
+            await typeText(responseContainer, data.response);
+            
+            output.innerHTML += `\n--------------------------\n`;
+            
+        } catch (err) {
+            typingMsg.remove();
+            output.innerHTML += `\n<span class="error-msg">[CHYBA]: Spojení přerušeno.</span>\n`;
+        } finally {
+            input.disabled = false;
+            btn.disabled = false;
+            input.focus();
+            output.scrollTop = output.scrollHeight;
+        }
+    }
+
+    btn.addEventListener('click', playGame);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') playGame(); });
+</script>
+
+</body>
+</html>

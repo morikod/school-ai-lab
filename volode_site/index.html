@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>VOLODE AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h1>VOLODE AI</h1>
+        <button onclick="newChat()">+ Nový chat</button>
+        <div id="chatList"></div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <div class="topbar">
+            <h2>AI Study Lab</h2>
+
+            <select onchange="changeTheme(this.value)">
+                <option value="dark">🌙 Dark</option>
+                <option value="light">☀️ Light</option>
+                <option value="blue">💧 Blue</option>
+            </select>
+        </div>
+
+        <div id="chat" class="chat"></div>
+
+        <div class="inputBox">
+            <input id="input" placeholder="Zeptej se AI nebo napiš 'kvíz'...">
+            <button onclick="send()">Odeslat</button>
+        </div>
+
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+ollama_data/
+open-webui_data/
+runtime/
+.env
+*.log
+__pycache__/

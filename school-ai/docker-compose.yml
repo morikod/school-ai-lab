@@ -1,0 +1,26 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: always
+    environment:
+      - OLLAMA_ORIGIN=*
+      - OLLAMA_HOST=0.0.0.0:11434
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - .:/root
+
+  portal:
+    image: nginx:alpine
+    container_name: school-portal
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro  # <--- ПРОВЕРЬ БУКВУ 'G' В NGINX
+
+volumes:
+  ollama_data:
